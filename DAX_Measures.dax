@@ -1,0 +1,216 @@
+/* =========================================================================================
+   POWER BI DAX MEASURES LIBRARY - SUPERSTORE SALES DASHBOARD
+   =========================================================================================
+   Best Practice:
+   Create a dedicated disconnected table named "_Measures" in Power BI Desktop to hold all
+   measures. (Go to Home -> Enter Data -> Name table "_Measures" -> Load).
+   ========================================================================================= */
+
+// =========================================================================================
+// 1. CORE KPI MEASURES
+// =========================================================================================
+
+// Total Sales ($)
+Total Sales = 
+SUM(Fact_Sales[Sales])
+
+// Total Profit ($)
+Total Profit = 
+SUM(Fact_Sales[Profit])
+
+// Total Quantity Sold (Units)
+Total Quantity = 
+SUM(Fact_Sales[Quantity])
+
+// Total Distinct Orders Placed
+Total Orders = 
+DISTINCTCOUNT(Fact_Sales[Order ID])
+
+// Total Customers
+Total Customers = 
+DISTINCTCOUNT(Fact_Sales[Customer ID])
+
+// Profit Margin (%)
+Profit Margin = 
+DIVIDE([Total Profit], [Total Sales], 0)
+
+// Total Cost ($)
+Total Cost = 
+[Total Sales] - [Total Profit]
+
+// Average Discount Given (%)
+Average Discount = 
+AVERAGE(Fact_Sales[Discount])
+
+
+// =========================================================================================
+// 2. TRANSACTION & CUSTOMER AVERAGES
+// =========================================================================================
+
+// Average Sales per Line Item ($)
+Average Sales = 
+AVERAGE(Fact_Sales[Sales])
+
+// Average Profit per Line Item ($)
+Average Profit = 
+AVERAGE(Fact_Sales[Profit])
+
+// Average Order Value (AOV) ($)
+Average Order Value = 
+DIVIDE([Total Sales], [Total Orders], 0)
+
+// Average Profit per Order ($)
+Average Profit per Order = 
+DIVIDE([Total Profit], [Total Orders], 0)
+
+// Sales per Customer ($)
+Sales per Customer = 
+DIVIDE([Total Sales], [Total Customers], 0)
+
+// Orders per Customer
+Orders per Customer = 
+DIVIDE([Total Orders], [Total Customers], 0)
+
+
+// =========================================================================================
+// 3. TIME INTELLIGENCE MEASURES (Requires Dim_Date Relationship)
+// =========================================================================================
+
+// Year-to-Date Sales ($)
+Year-to-Date Sales = 
+TOTALYTD([Total Sales], Dim_Date[Date])
+
+// Year-to-Date Profit ($)
+Year-to-Date Profit = 
+TOTALYTD([Total Profit], Dim_Date[Date])
+
+// Previous Year Sales ($)
+Previous Year Sales = 
+CALCULATE(
+    [Total Sales],
+    SAMEPERIODLASTYEAR(Dim_Date[Date])
+)
+
+// Previous Year Profit ($)
+Previous Year Profit = 
+CALCULATE(
+    [Total Profit],
+    SAMEPERIODLASTYEAR(Dim_Date[Date])
+)
+
+// YoY Sales Variance ($)
+Sales Variance YoY = 
+[Total Sales] - [Previous Year Sales]
+
+// Sales Growth % (YoY)
+Sales Growth % = 
+DIVIDE(
+    [Sales Variance YoY],
+    [Previous Year Sales],
+    0
+)
+
+// Profit Variance YoY ($)
+Profit Variance YoY = 
+[Total Profit] - [Previous Year Profit]
+
+// Profit Growth % (YoY)
+Profit Growth % = 
+DIVIDE(
+    [Profit Variance YoY],
+    [Previous Year Profit],
+    0
+)
+
+// Month-to-Date Sales ($)
+Month-to-Date Sales = 
+TOTALMTD([Total Sales], Dim_Date[Date])
+
+// Previous Month Sales ($)
+Previous Month Sales = 
+CALCULATE(
+    [Total Sales],
+    DATEADD(Dim_Date[Date], -1, MONTH)
+)
+
+// MoM Sales Growth %
+Sales Growth MoM % = 
+DIVIDE(
+    [Total Sales] - [Previous Month Sales],
+    [Previous Month Sales],
+    0
+)
+
+
+// =========================================================================================
+// 4. RANKING & TOP N FILTER MEASURES
+// =========================================================================================
+
+// Product Sales Rank
+Product Sales Rank = 
+RANKX(
+    ALLSELECTED(Dim_Product[Product Name]),
+    [Total Sales],
+    ,
+    DESC,
+    Dense
+)
+
+// Top 10 Products Flag (Used in Visual Level Filter: Top 10 Flag = 1)
+Top 10 Product Flag = 
+IF([Product Sales Rank] <= 10, 1, 0)
+
+// Customer Sales Rank
+Customer Sales Rank = 
+RANKX(
+    ALLSELECTED(Dim_Customer[Customer Name]),
+    [Total Sales],
+    ,
+    DESC,
+    Dense
+)
+
+// Top 10 Customer Flag (Used in Visual Level Filter: Top 10 Customer Flag = 1)
+Top 10 Customer Flag = 
+IF([Customer Sales Rank] <= 10, 1, 0)
+
+
+// =========================================================================================
+// 5. CONDITIONAL FORMATTING & KPI BADGES
+// =========================================================================================
+
+// Sales Growth Status Icon
+Sales Growth Status Icon = 
+IF(
+    [Sales Growth %] >= 0,
+    "▲ +" & FORMAT([Sales Growth %], "0.0%"),
+    "▼ " & FORMAT([Sales Growth %], "0.0%")
+)
+
+// Profit Status Color Code (Hex)
+Profit Margin Color Code = 
+SWITCH(
+    TRUE(),
+    [Profit Margin] >= 0.20, "#2E7D32", // Strong Green
+    [Profit Margin] >= 0.10, "#00A3E0", // Healthy Blue
+    [Profit Margin] >= 0.00, "#F57C00", // Moderate Orange
+    "#D32F2F"                           // Loss Red
+)
+
+
+// =========================================================================================
+// 6. DYNAMIC VISUAL TITLES (Reflects Active Slicer Filters)
+// =========================================================================================
+
+// Dynamic Title: Monthly Sales Trend
+Dynamic Title - Sales Trend = 
+VAR SelectedYear = SELECTEDVALUE(Dim_Date[Year], "All Years")
+VAR SelectedRegion = SELECTEDVALUE(Dim_Geography[Region], "All Regions")
+RETURN
+"Monthly Sales Trend (" & SelectedYear & " - " & SelectedRegion & ")"
+
+// Dynamic Title: Executive KPI Summary
+Dynamic Title - Executive Summary = 
+VAR SelectedSegment = SELECTEDVALUE(Dim_Customer[Segment], "All Segments")
+RETURN
+"Executive Performance Overview | Segment: " & SelectedSegment

@@ -1,0 +1,41 @@
+{
+  "name": "Superstore Executive Blue",
+  "dataColors": [
+    "#0F4C81",
+    "#00A3E0",
+    "#2E7D32",
+    "#F57C00",
+    "#8E24AA",
+    "#3949AB",
+    "#00897B",
+    "#D32F2F",
+    "#546E7A"
+  ],
+  "background": "#F4F6F9",
+  "foreground": "#1B2A47",
+  "tableAccent": "#0F4C81",
+  "visualStyles": {
+    "*": {
+      "*": {
+        "outspace": [{ "color": { "solid": { "color": "#F4F6F9" } } }],
+        "background": [{ "color": { "solid": { "color": "#FFFFFF" } }, "transparency": 0 }],
+        "border": [{ "show": true, "color": { "solid": { "color": "#E2E8F0" } }, "radius": 8 }],
+        "dropShadow": [{ "show": true, "color": { "solid": { "color": "#000000" } }, "transparency": 95, "position": "Outer", "preset": "BottomRight" }],
+        "title": [
+          {
+            "show": true,
+            "fontColor": { "solid": { "color": "#1B2A47" } },
+            "fontSize": 12,
+            "fontFamily": "Segoe UI Semibold"
+          }
+        ]
+      }
+    },
+    "card": {
+      "*": {
+        "labels": [{ "color": { "solid": { "color": "#0F4C81" } }, "fontSize": 24, "fontFamily": "Segoe UI Bold" }],
+        "categoryLabels": [{ "color": { "solid": { "color": "#64748B" } }, "fontSize": 10, "fontFamily": "Segoe UI" }]
+      }
+    }
+  }
+}
